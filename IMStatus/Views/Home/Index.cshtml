@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+</div>
+
+<form asp-action="ChangeTextButton_Click" method="post">
+
+    <label class="mt-4">URL</label>
+    <input class="form-control" type="url" placeholder="www.google.com" name="testing_url" pattern="https://.*"/>
+    
+    <label class="mt-4">Token</label>
+    <input class="form-control" type="text" placeholder="~sha256..." name="token" />
+    
+    <button class="btn btn-primary mt-4" type="submit">TEST</button>
+</form>
+
+<label id="Result_lbl" class="mt-4">@ViewBag.Result</label>
