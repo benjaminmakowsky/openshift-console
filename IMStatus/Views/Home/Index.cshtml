@@ -2,6 +2,8 @@
     ViewData["Title"] = "Home Page";
 }
 
+@model List<Project>
+
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
 </div>
@@ -16,5 +18,31 @@
     
     <button class="btn btn-primary mt-4" type="submit">TEST</button>
 </form>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Title</th>
+        <th>Created</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>@{
+           if (Model != null && Model.Count > 0)
+           {
+               foreach (Project project in Model)
+               {
+                   <tr>
+                       <td>@project.Id</td>
+                       <td>@project.Title</td>
+                       <td>@project.CreationDate</td>
+                       <td>@project.Status</td>
+                   </tr>
+               } 
+           }        
+   
+    }</tbody>
+</table>
 
 <label id="Result_lbl" class="mt-4">@ViewBag.Result</label>
