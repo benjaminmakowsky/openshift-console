@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
-using System.Net.NetworkInformation;
 using Microsoft.AspNetCore.Mvc;
 using IMStatus.Models;
 using Newtonsoft.Json;
@@ -38,40 +38,40 @@ public class HomeController : Controller
         {
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
+        
         try {
+            //Attempt to reach openshift with the bearer token
             using var client = new HttpClient(handler);
             client.DefaultRequestHeaders.Authorization = 
                 new AuthenticationHeaderValue("Bearer", token);
-            var response = await client.GetAsync(testing_url);
-            string responseString = await response.Content.ReadAsStringAsync();
-            var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseString);
-            string responseKind = jsonObject.kind;
-            int statusCode = (int)response.StatusCode;
-            HashSet<Project> projects = new HashSet<Project>();
             
-            foreach (var item in jsonObject.items)
-            {
-                Project project = new Project();
-                project.Title = item.metadata.name;
-                project.CreationDate = item.metadata.creationTimestamp;
-                project.Status = item.status.phase;
-                _openshiftDbContext.Add(project);
-                await _openshiftDbContext.SaveChangesAsync();
-                projects.Add(project);
+            //Attempt to parse response as JSON object
+            var response = await client.GetAsync(testing_url);
+            HttpStatusCode statusCode = response.StatusCode;
+
+            //If valid response attempt to create db
+            if (statusCode == HttpStatusCode.OK) {
+                string responseString = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseString);
+                if (jsonObject != null)
+                {
+                    //Save each project into the DB
+                    foreach (dynamic item in jsonObject.items)
+                    {
+                        _openshiftDbContext.Add(Project.FromJson(item));
+                    } 
+                    await _openshiftDbContext.SaveChangesAsync();
+                }
             }
-
-            result =
-                $"Token: {token}\n" +
-                $"Url: {testing_url}\n" +
-                $"HTTP Status Code: {statusCode}\n" +
-                $"Response Kind: {responseKind}\n";
-
+            //Report the status code of the URL
+            result = $"Url: {testing_url} HTTP Status Code: {statusCode}\n";
         }
         catch (Exception ex)
         {
             result = $"Unexpected error: {ex.Message}";
         }
 
+        //Reload the webpage with the db and the result of the rest call
         List<Project> projectsList = _openshiftDbContext.Projects.ToList();
         ViewBag.Result = result;
         return View("Index", projectsList);
