@@ -11,6 +11,12 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly OpenshiftDbContext _openshiftDbContext;
+
+    //Minimum required values for accessing OpenShift
+    private string bearerToken = "";
+    private string rootURL = "";
+        
+        
     public HomeController(ILogger<HomeController> logger, OpenshiftDbContext openshiftDbContext){
         _logger = logger;
         _openshiftDbContext = openshiftDbContext;
@@ -33,6 +39,12 @@ public class HomeController : Controller
     {
         string result;
 
+        
+        bearerToken = token;
+        rootURL = testing_url;  
+        
+        
+        
         // Create a handler that skips certificate validation
         var handler = new HttpClientHandler
         {
@@ -64,7 +76,7 @@ public class HomeController : Controller
                 }
             }
             //Report the status code of the URL
-            result = $"Url: {testing_url} HTTP Status Code: {statusCode}\n";
+            result = $"Url: {rootURL} HTTP Status Code: {statusCode}\n";
         }
         catch (Exception ex)
         {
@@ -75,6 +87,24 @@ public class HomeController : Controller
         List<Project> projectsList = _openshiftDbContext.Projects.ToList();
         ViewBag.Result = result;
         return View("Index", projectsList);
+    }
+
+    /// <summary>
+    /// Loads up the project view passing in the name of the project to analyze. This is called from the table displaying
+    /// available projects within openshift.
+    /// </summary>
+    /// <param name="id">The id of the project in the database to fetch</param>
+    /// <returns></returns>
+    public IActionResult LoadProject(int id)
+    {
+        var dbProject = _openshiftDbContext.Projects.SingleOrDefault(project => project.Id == id);
+        if (dbProject != null)
+        {
+            Console.WriteLine(dbProject);
+            return View("~/Views/Project/Index.cshtml", dbProject);
+        }
+
+        return View("~/Views/Project/Index.cshtml");
     }
     
     

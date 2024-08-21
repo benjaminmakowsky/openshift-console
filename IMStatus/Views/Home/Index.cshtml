@@ -22,6 +22,7 @@
 <label id="Result_lbl" class="mt-4">@ViewBag.Result</label>
 
 <table class="table">
+    <caption>Projects</caption>
     <thead>
     <tr>
         <th>Id</th>
@@ -30,20 +31,25 @@
         <th>Status</th>
     </tr>
     </thead>
-    <tbody>@{
-           if (Model != null && Model.Count > 0)
-           {
-               foreach (Project project in Model)
-               {
-                   <tr>
-                       <td>@project.Id</td>
-                       <td>@project.Title</td>
-                       <td>@project.CreationDate</td>
-                       <td>@project.Status</td>
-                   </tr>
-               } 
-           }        
-   
-    }</tbody>
+    <tbody>
+    @{
+        if (Model != null && Model.Count > 0)
+        {
+            foreach (Project project in Model)
+            {
+                <tr>
+                    <td>@project.Id</td>
+                    <td>@project.Title</td>
+                    <td>@project.CreationDate</td>
+                    <td>@project.Status</td>
+                    <td>
+                        <a asp-action="LoadProject" asp-route-id="@project.Id">Info</a>
+                    </td>
+                </tr>
+            }
+        }
+
+    }
+    </tbody>
 </table>
 
